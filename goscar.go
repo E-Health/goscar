@@ -133,7 +133,7 @@ func FindDuplicates(csvMap []map[string]string, dateFrom string, dateTo string, 
 }
 
 // writeLines writes the lines to the given file.
-func writeLines(lines []string, path string) error {
+func WriteLines(lines []string, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -147,7 +147,7 @@ func writeLines(lines []string, path string) error {
 	return w.Flush()
 }
 
-func getStats(key string, recordCount int, csvMapValid []map[string]string) map[string]float64 {
+func GetStats(key string, recordCount int, csvMapValid []map[string]string) map[string]float64 {
 	varType := "string"
 	counter := make(map[string]int)
 	varNum := []float64{}
