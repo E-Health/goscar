@@ -1,11 +1,15 @@
 package goscar
 
 import (
+	"bufio"
 	"database/sql"
 	"encoding/csv"
+	"fmt"
+	stats "github.com/montanaflynn/stats"
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -126,4 +130,64 @@ func FindDuplicates(csvMap []map[string]string, dateFrom string, dateTo string, 
 		}
 	}
 	return csvMapValid, recordCount
+}
+
+// writeLines writes the lines to the given file.
+func writeLines(lines []string, path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := bufio.NewWriter(file)
+	for _, line := range lines {
+		fmt.Fprintln(w, line)
+	}
+	return w.Flush()
+}
+
+func getStats(key string, recordCount int, csvMapValid []map[string]string) map[string]float64 {
+	varType := "string"
+	counter := make(map[string]int)
+	varNum := []float64{}
+	toReturn := make(map[string]float64)
+	for _, record := range csvMapValid {
+		if n, err := strconv.ParseFloat(record[key], 64); err == nil {
+			varNum = append(varNum, n)
+			varType = "num"
+		} else {
+			counter[record[key]]++
+
+		}
+		// https://stackoverflow.com/questions/44417913/go-count-distinct-values-in-array-performance-tips
+	}
+	distinctStrings := make([]string, len(counter))
+	i := 0
+	for k := range counter {
+		distinctStrings[i] = k
+		i++
+	}
+	for _, s := range distinctStrings {
+		toReturn["count"] = float64(counter[s])
+		toReturn["percent"] = float64(counter[s] * 100 / recordCount)
+		toReturn["num"] = 0
+	}
+	if varType == "num" {
+		toReturn["num"] = 1
+		a, _ := stats.Sum(varNum)
+		toReturn["sum"] = a
+		a, _ = stats.Min(varNum)
+		toReturn["min"] = a
+		a, _ = stats.Max(varNum)
+		toReturn["max"] = a
+		a, _ = stats.Mean(varNum)
+		toReturn["mean"] = a
+		a, _ = stats.Median(varNum)
+		toReturn["median"] = a
+		a, _ = stats.StandardDeviation(varNum)
+		toReturn["stddev"] = a
+
+	}
+	return toReturn
 }
