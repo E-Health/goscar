@@ -142,20 +142,22 @@ func WriteLines(lines []string, path string) error {
 
 	w := bufio.NewWriter(file)
 	for _, line := range lines {
-		fmt.Fprintln(w, line)
+		_, _ = fmt.Fprintln(w, line)
 	}
 	return w.Flush()
 }
 
 func GetStats(key string, recordCount int, csvMapValid []map[string]string) map[string]float64 {
-	varType := "string"
 	counter := make(map[string]int)
 	varNum := []float64{}
 	toReturn := make(map[string]float64)
+	varType := "string"
+	toReturn["num"] = 0
 	for _, record := range csvMapValid {
 		if n, err := strconv.ParseFloat(record[key], 64); err == nil {
 			varNum = append(varNum, n)
 			varType = "num"
+			toReturn["num"] = 1
 		} else {
 			counter[record[key]]++
 
@@ -169,12 +171,9 @@ func GetStats(key string, recordCount int, csvMapValid []map[string]string) map[
 		i++
 	}
 	for _, s := range distinctStrings {
-		toReturn["count"] = float64(counter[s])
-		toReturn["percent"] = float64(counter[s] * 100 / recordCount)
-		toReturn["num"] = 0
+		toReturn[s] = float64(counter[s])
 	}
 	if varType == "num" {
-		toReturn["num"] = 1
 		a, _ := stats.Sum(varNum)
 		toReturn["sum"] = a
 		a, _ = stats.Min(varNum)
