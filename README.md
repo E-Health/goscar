@@ -1,3 +1,3 @@
 # Go Package for OSCAR
 
-## Work in progress: DO NOT USE
+## Work in progress: DO NOT USE.
